@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: countly-tls
+data:
+    tls.crt: # cat cert.crt | base64
+  tls.key: # cat cert.key | base64
+type: kubernetes.io/tls
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: countly-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.global-static-ip-name: "countly-static-ip"
+spec:
+  tls:
+  - hosts:
+    - test.sharroh.com       # countly.example.com
+    secretName: countly-tls
+  rules:
+  - http:
+      paths:
+      - path: /i
+        backend:
+          serviceName: countly-api
+          servicePort: 3001
+      - path: /i/*
+        backend:
+          serviceName: countly-api
+          servicePort: 3001
+      - path: /o
+        backend:
+          serviceName: countly-api
+          servicePort: 3001
+      - path: /o/*
+        backend:
+          serviceName: countly-api
+          servicePort: 3001
+      - path: /*
+        backend:
+          serviceName: countly-frontend
+          servicePort: 6001
